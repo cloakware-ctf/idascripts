@@ -1,0 +1,79 @@
+#!/bin/bash
+#   Copyright 2016-2018 Irdeto BV
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+die() {
+	echo "fatal: $@" > /dev/stderr
+	exit 1
+}
+
+READLINK=readlink
+if ! test -z "$(which greadlink 2>/dev/null)"; then #we need a useful readlink alternative on OSX
+	READLINK=greadlink
+fi
+
+SCRIPT_DIR="$(dirname $(${READLINK} -f "${0}"))"
+
+AR=ar
+if ! test -z "$(which gar 2>/dev/null)"; then #we need a useful ar alternative on OSX
+	AR=gar
+fi
+
+if [ -z "$1" ]; then
+	die "please specify directories to recursively descend and analyze ('.' for here)"
+fi
+
+find "$@" -type f | while read any_file; do
+	if file "${any_file}" | grep -qw 'ELF'; then
+		target_dir="$(basename "${any_file}")"
+		parent_of="$(basename "$(dirname "${any_file}")")"
+		if [ "${parent_of}" != "lib" ]; then
+			target_dir="${target_dir}/${parent_of}"
+		fi
+		mkdir -p "${target_dir}" || die
+		echo "getting target ${any_file} to ${target_dir}"
+		cp "${any_file}" "${target_dir}" || die
+	elif file "${any_file}" | grep -qE '(Mach-O )'; then
+		if lipo -detailed_info "${any_file}" | grep -q "Fat header in:"; then
+			for arch in $(lipo -detailed_info "${any_file}" | grep -w architecture | awk '{print $2}'); do
+				#extract arch
+				target_dir="$(basename "${any_file}").${arch}"
+				mkdir -p "${target_dir}" || die
+				echo "getting ${any_file} arch ${arch} to ${target_dir}/$(basename "${target_dir}")"
+				lipo "${any_file}" -thin ${arch} -output "${target_dir}/$(basename "${target_dir}")" || die "couldn't thin macho"
+			done
+		else
+			target_dir="$(basename "${any_file}")"
+			mkdir -p "${target_dir}" || die
+			echo "getting target ${any_file} to ${target_dir}"
+			cp "${any_file}" "${target_dir}" || die
+		fi
+	elif file "${any_file}" | grep -q "current ar archive"; then
+		target_dir="$(basename "${any_file}")"
+		parent_of="$(basename "$(dirname "${any_file}")")"
+		if [ "${parent_of}" != "lib" ]; then
+			target_dir="${target_dir}/${parent_of}"
+		fi
+		mkdir -p "${target_dir}" || die
+		any_file="$(${READLINK} -f "${any_file}")"
+		echo "getting .o's of ${any_file} to ${target_dir}"
+		(cd "${target_dir}" && ${AR} -x "${any_file}") || die
+	elif rabin2 -I "${any_file}" | grep -q "arch     dalvik"; then
+		target_dir="$(basename "${any_file}")"
+		mkdir -p "${target_dir}" || die
+		echo "getting target ${any_file} to ${target_dir}"
+		cp "${any_file}" "${target_dir}" || die
+	fi
+done || die "couldn't copy all analysis targets"
+

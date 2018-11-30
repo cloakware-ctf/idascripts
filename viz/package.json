@@ -1,0 +1,13 @@
+{
+  "name": "viz-hive",
+  "version": "1.0.0",
+  "description": "viz xrefs in a binary as a hiveplot",
+  "main": "render_hive.js",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "yargs": "^10.0.3"
+  },
+  "scripts": {
+    "postinstall": "bash fetch_deps.sh"
+  }
+}

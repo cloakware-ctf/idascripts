@@ -1,0 +1,58 @@
+.domain {
+  visibility: hidden;
+}
+
+.axis {
+  stroke-width: 1.5px;
+}
+
+.tick {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+  shape-rendering: crispEdges;
+}
+
+.tick text {
+  font-family: monospace;
+  font-size: 24px;
+  stroke: none;
+}
+
+.label text {
+  font-family: sans-serif;
+  font-size: 36px;
+}
+
+.link {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-opacity: .33;
+}
+
+.link.active {
+  stroke-width: 3.0px;
+  stroke-opacity: 1;
+}
+
+.link.selected {
+  stroke-width: 6.0px;
+  stroke-opacity: 1;
+}
+
+.node {
+  stroke: #000;
+  stroke-width: 0.5px;
+  stroke-opacity: .7;
+}
+
+.node.active {
+  fill: #000;
+  stroke-opacity: 1;
+}
+
+.node.selected {
+  fill: #000 !important;
+  stroke-width: 1.0px;
+  stroke-opacity: 1;
+}

@@ -1,0 +1,49 @@
+<style>%%hivestyle%%</style>
+<body>
+<script >%%d3script%%</script>
+<script >%%keybinding%%</script>
+<script >%%hive%%</script>
+<script >%%chromatic%%</script>
+
+<script >%%hivecommon%%</script>
+<script type="application/json" id="hivedata">
+%%jsondata%%
+</script>
+<style>
+html, body {
+    margin:0;
+    padding:0;
+    height:100%;
+}
+.page {
+    min-height:100%;
+    position:relative;
+}
+.header {
+    padding:0px;
+}
+.content{
+    text-align:justify;
+    height: calc(100% - 15px);
+ }
+.footer {
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:15px;   /* Height of the footer */
+    padding:10px 0; /*paddingtop+bottom 20*/
+}
+
+</style>
+<div class="page">
+    <div class="header"></div>
+    <div class="content" id="hive">
+    </div>
+    <div class="footer">
+      <div id="info" align="center"></div>
+    </div>
+</div>
+<script>
+hive_init(JSON.parse(document.getElementById("hivedata").innerHTML), null);
+</script>
+</body>
